@@ -47,13 +47,14 @@ class DefaultComplexType extends AbstractComplexTypeStrategy
         $this->getContext()->addType($phpType, $soapType);
 
         $defaultProperties = $class->getDefaultProperties();
+        $properties = $class->getProperties();
 
         $complexType = $dom->createElementNS(Wsdl::XSD_NS_URI, 'complexType');
         $complexType->setAttribute('name', $soapTypeName);
 
         $all = $dom->createElementNS(Wsdl::XSD_NS_URI, 'all');
 
-        foreach ($class->getProperties() as $property) {
+        foreach ($properties as $property) {
             if ($property->isPublic() && preg_match_all('/@var\s+([^\s]+)/m', $property->getDocComment(), $matches)) {
                 /**
                  * @todo check if 'xsd:element' must be used here (it may not be
@@ -74,7 +75,7 @@ class DefaultComplexType extends AbstractComplexTypeStrategy
         }
 
         $parent = $class->getParentClass();
-        if ($parent) {
+        if ($parent && !$parent->getProperties()) {
             $extension = $dom->createElementNS(Wsdl::XSD_NS_URI, 'extension');
             $complexContent = $dom->createElementNS(Wsdl::XSD_NS_URI, 'complexContent');
             $extension->setAttribute('base', $this->addComplexType($parent->getName()));
@@ -85,7 +86,7 @@ class DefaultComplexType extends AbstractComplexTypeStrategy
             $complexType->appendChild($all);
         }
 
-        if ($class->isAbstract()) {
+        if ($class->isAbstract() && empty($properties)) {
             $complexType->setAttribute('abstract', 'true');
         }
 
