@@ -73,7 +73,22 @@ class DefaultComplexType extends AbstractComplexTypeStrategy
             }
         }
 
-        $complexType->appendChild($all);
+        $parent = $class->getParentClass();
+        if ($parent) {
+            $extension = $dom->createElementNS(Wsdl::XSD_NS_URI, 'extension');
+            $complexContent = $dom->createElementNS(Wsdl::XSD_NS_URI, 'complexContent');
+            $extension->setAttribute('base', $this->addComplexType($parent->getName()));
+            $extension->appendChild($all);
+            $complexContent->appendChild($extension);
+            $complexType->appendChild($complexContent);
+        } else {
+            $complexType->appendChild($all);
+        }
+
+        if ($class->isAbstract()) {
+            $complexType->setAttribute('abstract', 'true');
+        }
+
         $this->getContext()->getSchema()->appendChild($complexType);
 
         return $soapType;
