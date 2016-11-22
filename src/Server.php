@@ -18,6 +18,7 @@ use SimpleXMLElement;
 use ReflectionClass;
 use Zend\Server\Server as ZendServerServer;
 use Zend\Stdlib\ArrayUtils;
+use Throwable;
 
 class Server implements ZendServerServer
 {
@@ -64,7 +65,7 @@ class Server implements ZendServerServer
 
     /**
      * Container for caught exception during business code execution
-     * @var \Exception
+     * @var Throwable
      */
     protected $caughtException = null;
 
@@ -935,7 +936,7 @@ class Server implements ZendServerServer
         $setRequestException = null;
         try {
             $this->setRequest($request);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $setRequestException = $e;
         }
 
@@ -944,14 +945,14 @@ class Server implements ZendServerServer
         $fault          = false;
         $this->response = '';
 
-        if ($setRequestException instanceof \Exception) {
+        if ($setRequestException instanceof Throwable) {
             // Create SOAP fault message if we've caught a request exception
             $fault = $this->fault($setRequestException->getMessage(), 'Sender');
         } else {
             ob_start();
             try {
                 $soap->handle($this->request);
-            } catch (\Exception $e) {
+            } catch (Throwable $e) {
                 $fault = $this->fault($e);
             }
             $this->response = ob_get_clean();
@@ -1095,7 +1096,7 @@ class Server implements ZendServerServer
 
     /**
      * Return caught exception during business code execution
-     * @return null|\Exception caught exception
+     * @return null|Throwable caught exception
      */
     public function getException()
     {
@@ -1112,15 +1113,15 @@ class Server implements ZendServerServer
      * {@Link registerFaultException()}.
      *
      * @link   http://www.w3.org/TR/soap12-part1/#faultcodes
-     * @param  string|\Exception $fault
+     * @param  string|Throwable $fault
      * @param  string $code SOAP Fault Codes
      * @return SoapFault
      */
     public function fault($fault = null, $code = 'Receiver')
     {
-        $this->caughtException = (is_string($fault)) ? new \Exception($fault) : $fault;
+        $this->caughtException = (is_string($fault)) ? new Throwable($fault) : $fault;
 
-        if ($fault instanceof \Exception) {
+        if ($fault instanceof Throwable) {
             if ($this->isRegisteredAsFaultException($fault)) {
                 $message = $fault->getMessage();
                 $eCode   = $fault->getCode();
