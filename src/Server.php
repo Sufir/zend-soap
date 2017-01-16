@@ -19,6 +19,7 @@ use ReflectionClass;
 use Zend\Server\Server as ZendServerServer;
 use Zend\Stdlib\ArrayUtils;
 use Throwable;
+use Exception;
 
 class Server implements ZendServerServer
 {
@@ -1119,7 +1120,7 @@ class Server implements ZendServerServer
      */
     public function fault($fault = null, $code = 'Receiver')
     {
-        $this->caughtException = (is_string($fault)) ? new Throwable($fault) : $fault;
+        $this->caughtException = (is_string($fault)) ? new Exception($fault) : $fault;
 
         if ($fault instanceof Throwable) {
             if ($this->isRegisteredAsFaultException($fault)) {
