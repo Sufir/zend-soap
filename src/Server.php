@@ -1132,6 +1132,13 @@ class Server implements ZendServerServer
             }
         } elseif (is_string($fault)) {
             $message = $fault;
+        } elseif ($fault instanceof SimpleXMLElement) {
+            if ($this->isRegisteredAsFaultException($fault)) {
+                $message = (string) $fault;
+                $code = (strpos($code, 'Server') !== false) ? 'Server' : $code;
+            } else {
+                $message = 'Unknown error';
+            }
         } else {
             $message = 'Unknown error';
         }
