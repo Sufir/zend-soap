@@ -954,16 +954,19 @@ class Server implements ZendServerServer
             try {
                 $soap->handle($this->request);
             } catch (Throwable $e) {
+
                 $fault = $this->fault($e);
             }
             $this->response = ob_get_clean();
 
             // Always return SoapFaul object if fault
-            $xml = new SimpleXMLElement($this->response);
-            $xml->registerXPathNamespace('soap-env', 'http://schemas.xmlsoap.org/soap/envelope/');
-            $faultsExists = $xml->xpath('//soap-env:Fault[1]');
-            if (count($faultsExists) === 1 && isset($faultsExists[0]->faultcode, $faultsExists[0]->faultstring)) {
-                $fault = $this->fault($faultsExists[0]->faultstring, $faultsExists[0]->faultcode);
+            if (!empty($this->response)) {
+                $xml = new SimpleXMLElement($this->response);
+                $xml->registerXPathNamespace('soap-env', 'http://schemas.xmlsoap.org/soap/envelope/');
+                $faultsExists = $xml->xpath('//soap-env:Fault[1]');
+                if (count($faultsExists) === 1 && isset($faultsExists[0]->faultcode, $faultsExists[0]->faultstring)) {
+                    $fault = $this->fault($faultsExists[0]->faultstring, $faultsExists[0]->faultcode);
+                }
             }
         }
 
