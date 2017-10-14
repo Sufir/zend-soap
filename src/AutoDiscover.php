@@ -9,6 +9,7 @@
 
 namespace Zend\Soap;
 
+use Zend\Code\Reflection\DocBlockReflection;
 use Zend\Server\Reflection;
 use Zend\Soap\AutoDiscover\DiscoveryStrategy\DiscoveryStrategyInterface as DiscoveryStrategy;
 use Zend\Soap\AutoDiscover\DiscoveryStrategy\ReflectionDiscovery;
@@ -566,14 +567,23 @@ class AutoDiscover
             $operationBodyStyle['namespace'] = '' . $targetNamespace;
         }
 
-        // Add the binding operation
-        if ($isOneWayMessage == false) {
-            $operation = $wsdl->addBindingOperation($binding, $functionName, $operationBodyStyle, $operationBodyStyle);
-        } else {
-            $operation = $wsdl->addBindingOperation($binding, $functionName, $operationBodyStyle);
-        }
+        $reflection = new \ReflectionObject($function);
+        $reflectionProperty = $reflection->getProperty('docComment');
+        $reflectionProperty->setAccessible(true);
+        $docComment = $reflectionProperty->getValue($function);
 
-        $wsdl->addSoapOperation($operation, $targetNamespace . '#' . $functionName);
+        $scanner = new DocBlockReflection(($docComment) ? : '/***/');
+
+        // Add the binding operation
+        if (!$scanner->getTag('soapHeader')) {
+            if ($isOneWayMessage == false) {
+                $operation = $wsdl->addBindingOperation($binding, $functionName, $operationBodyStyle, $operationBodyStyle);
+            } else {
+                $operation = $wsdl->addBindingOperation($binding, $functionName, $operationBodyStyle);
+            }
+
+            $wsdl->addSoapOperation($operation, $targetNamespace . '#' . $functionName);
+        }
     }
 
     /**
