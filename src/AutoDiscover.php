@@ -575,7 +575,7 @@ class AutoDiscover
         $scanner = new DocBlockReflection(($docComment) ? : '/***/');
 
         // Add the binding operation
-        if (!$function->isHeader()) {
+        if (!$scanner->getTag('soapHeader')) {
             if ($isOneWayMessage == false) {
                 $operation = $wsdl->addBindingOperation($binding, $functionName, $operationBodyStyle, $operationBodyStyle);
             } else {
