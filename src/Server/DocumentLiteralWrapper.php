@@ -87,6 +87,11 @@ class DocumentLiteralWrapper
     protected $reflection;
 
     /**
+     * @var string[]
+     */
+    protected $phantomMethods;
+
+    /**
      * Pass Service object to the constructor
      *
      * @param object $object
@@ -98,6 +103,20 @@ class DocumentLiteralWrapper
     }
 
     /**
+     * @param string[] $phantomMethods
+     * @return DocumentLiteralWrapper
+     */
+    public function setPhantomMethods(array $phantomMethods)
+    {
+        $this->phantomMethods = [];
+        foreach ($phantomMethods as $phantomMethod) {
+            $this->phantomMethods[] = strtolower($phantomMethod);
+        }
+
+        return $this;
+    }
+
+    /**
      * Proxy method that does the heavy document/literal decomposing.
      *
      * @param  string $method
@@ -106,6 +125,10 @@ class DocumentLiteralWrapper
      */
     public function __call($method, $args)
     {
+        if (in_array(strtolower($method), $this->phantomMethods)) {
+            return;
+        }
+
         $this->assertOnlyOneArgument($args);
         $this->assertServiceDelegateHasMethod($method);
 
